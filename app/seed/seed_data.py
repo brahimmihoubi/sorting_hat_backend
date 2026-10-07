@@ -347,19 +347,27 @@ def seed_db(db: Session) -> None:
                 )
                 db.add(rule)
 
-    # 3. Seed Default Admin User
-    admin_email = "admin@sdg.dz"
-    admin = db.query(AdminUser).filter(AdminUser.email == admin_email).first()
-    if not admin:
-        admin = AdminUser(
-            name="SDG Admin",
-            email=admin_email,
-            password_hash=get_password_hash("admin123"),
-            role="super_admin",
-            active=True,
-        )
-        db.add(admin)
-        logger.info(f"Created default admin user: {admin_email}")
+    # 3. Seed Default Admin Users
+    admin_users_seed = [
+        {"email": "admin@sdg.dz", "password": "admin123", "name": "SDG Admin"},
+        {"email": "algeria.data@gmail.com", "password": "SDG_welcome_2027", "name": "System Administrator"},
+    ]
+    for a_info in admin_users_seed:
+        admin = db.query(AdminUser).filter(AdminUser.email == a_info["email"]).first()
+        if not admin:
+            admin = AdminUser(
+                name=a_info["name"],
+                email=a_info["email"],
+                password_hash=get_password_hash(a_info["password"]),
+                role="super_admin",
+                active=True,
+            )
+            db.add(admin)
+            logger.info(f"Created admin user: {a_info['email']}")
+        else:
+            admin.password_hash = get_password_hash(a_info["password"])
+            admin.active = True
+            logger.info(f"Updated admin user: {a_info['email']}")
 
     db.commit()
     logger.info("Database seeding completed successfully!")
